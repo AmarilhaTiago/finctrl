@@ -100,6 +100,23 @@ export function useTransactions(filters: TransactionFilters = {}) {
     return data as Transaction
   }
 
+  async function updateTransaction(id: string, input: CreateTransactionInput): Promise<Transaction | null> {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from("transactions")
+      .update({ ...input })
+      .eq("id", id)
+      .select()
+      .single()
+
+    if (error) {
+      throw error
+    }
+
+    await fetchTransactions()
+    return data as Transaction
+  }
+
   async function deleteTransaction(id: string): Promise<void> {
     const supabase = createClient()
     const { error } = await supabase
@@ -118,6 +135,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
     transactions,
     loading,
     createTransaction,
+    updateTransaction,
     deleteTransaction,
     refetch: fetchTransactions,
   }

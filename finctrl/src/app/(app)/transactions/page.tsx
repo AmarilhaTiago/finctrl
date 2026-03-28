@@ -14,6 +14,7 @@ import { getMonthRange, getCurrentMonthYear } from "@/lib/utils/date"
 export default function TransactionsPage() {
   const { month, year } = getCurrentMonthYear()
   const openTransactionModal = useUIStore((s) => s.openTransactionModal)
+  const openEditTransactionModal = useUIStore((s) => s.openEditTransactionModal)
   const refetchKey = useUIStore((s) => s.refetchKey)
 
   const [filters, setFilters] = useState<FilterState>({
@@ -104,6 +105,7 @@ export default function TransactionsPage() {
         transactions={filteredTransactions}
         loading={loading}
         onDelete={deleteTransaction}
+        onEdit={openEditTransactionModal}
       />
     </div>
   )

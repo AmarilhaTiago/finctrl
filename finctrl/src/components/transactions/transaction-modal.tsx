@@ -39,10 +39,12 @@ function todayISO() {
 }
 
 export function TransactionModal() {
-  const { isTransactionModalOpen, closeTransactionModal, triggerRefetch } = useUIStore()
+  const { isTransactionModalOpen, closeTransactionModal, triggerRefetch, editingTransaction } = useUIStore()
   const { categories } = useCategories()
   const { accounts } = useAccounts()
-  const { createTransaction } = useTransactions()
+  const { createTransaction, updateTransaction } = useTransactions()
+
+  const isEditMode = editingTransaction !== null
 
   const {
     register,
@@ -72,6 +74,31 @@ export function TransactionModal() {
 
   const amountRef = React.useRef<HTMLInputElement>(null)
 
+  // Pre-fill form when editing
+  React.useEffect(() => {
+    if (editingTransaction) {
+      reset({
+        type: editingTransaction.type as TransactionFormValues["type"],
+        amount: editingTransaction.amount,
+        description: editingTransaction.description,
+        category_id: editingTransaction.category_id ?? "",
+        account_id: editingTransaction.account_id ?? "",
+        date: editingTransaction.date,
+        notes: editingTransaction.notes ?? "",
+      })
+    } else if (isTransactionModalOpen) {
+      reset({
+        type: "expense",
+        amount: 0,
+        description: "",
+        category_id: "",
+        account_id: "",
+        date: todayISO(),
+        notes: "",
+      })
+    }
+  }, [editingTransaction, isTransactionModalOpen, reset])
+
   // Focus amount input when modal opens
   React.useEffect(() => {
     if (isTransactionModalOpen) {
@@ -88,7 +115,7 @@ export function TransactionModal() {
     keepOpen: boolean = false
   ) {
     try {
-      await createTransaction({
+      const input = {
         type: values.type as TransactionType,
         amount: values.amount,
         description: values.description,
@@ -97,24 +124,12 @@ export function TransactionModal() {
         date: values.date,
         notes: values.notes || null,
         credit_card_id: null,
-      })
+      }
 
-      toast.success("Transação registrada com sucesso!")
-      triggerRefetch()
-
-      if (keepOpen) {
-        // Batch mode: keep type, category, account — reset amount, description, notes
-        reset({
-          type: values.type,
-          amount: 0,
-          description: "",
-          category_id: values.category_id,
-          account_id: values.account_id,
-          date: values.date,
-          notes: "",
-        })
-        setTimeout(() => amountRef.current?.focus(), 50)
-      } else {
+      if (isEditMode && editingTransaction) {
+        await updateTransaction(editingTransaction.id, input)
+        toast.success("Transação atualizada com sucesso!")
+        triggerRefetch()
         closeTransactionModal()
         reset({
           type: "expense",
@@ -125,6 +140,35 @@ export function TransactionModal() {
           date: todayISO(),
           notes: "",
         })
+      } else {
+        await createTransaction(input)
+        toast.success("Transação registrada com sucesso!")
+        triggerRefetch()
+
+        if (keepOpen) {
+          // Batch mode: keep type, category, account — reset amount, description, notes
+          reset({
+            type: values.type,
+            amount: 0,
+            description: "",
+            category_id: values.category_id,
+            account_id: values.account_id,
+            date: values.date,
+            notes: "",
+          })
+          setTimeout(() => amountRef.current?.focus(), 50)
+        } else {
+          closeTransactionModal()
+          reset({
+            type: "expense",
+            amount: 0,
+            description: "",
+            category_id: "",
+            account_id: "",
+            date: todayISO(),
+            notes: "",
+          })
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao salvar transação"
@@ -156,7 +200,7 @@ export function TransactionModal() {
     <Dialog open={isTransactionModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md" showCloseButton>
         <DialogHeader>
-          <DialogTitle>Nova Transação</DialogTitle>
+          <DialogTitle>{isEditMode ? "Editar Transação" : "Nova Transação"}</DialogTitle>
         </DialogHeader>
 
         <form
@@ -307,17 +351,19 @@ export function TransactionModal() {
             >
               Cancelar
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={isSubmitting}
-              onClick={handleSubmit((values) => onSubmit(values, true))}
-              title="Ctrl+Enter"
-            >
-              Salvar e continuar
-            </Button>
+            {!isEditMode && (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isSubmitting}
+                onClick={handleSubmit((values) => onSubmit(values, true))}
+                title="Ctrl+Enter"
+              >
+                Salvar e continuar
+              </Button>
+            )}
             <Button type="submit" disabled={isSubmitting}>
-              Salvar
+              {isEditMode ? "Atualizar" : "Salvar"}
             </Button>
           </div>
         </form>

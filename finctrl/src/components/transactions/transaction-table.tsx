@@ -9,6 +9,7 @@ interface TransactionTableProps {
   transactions: TransactionWithRelations[]
   loading: boolean
   onDelete?: (id: string) => void
+  onEdit?: (transaction: TransactionWithRelations) => void
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -91,9 +92,10 @@ function SkeletonRow() {
 interface TransactionRowProps {
   transaction: TransactionWithRelations
   onDelete?: (id: string) => void
+  onEdit?: (transaction: TransactionWithRelations) => void
 }
 
-function TransactionRow({ transaction, onDelete }: TransactionRowProps) {
+function TransactionRow({ transaction, onDelete, onEdit }: TransactionRowProps) {
   const [hovered, setHovered] = useState(false)
   const [deleteHovered, setDeleteHovered] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -118,6 +120,7 @@ function TransactionRow({ transaction, onDelete }: TransactionRowProps) {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => onEdit?.(transaction)}
       style={{
         display: "grid",
         gridTemplateColumns: `${COL_WIDTHS.date} ${COL_WIDTHS.description} ${COL_WIDTHS.category} ${COL_WIDTHS.account} ${COL_WIDTHS.amount} ${COL_WIDTHS.actions}`,
@@ -127,7 +130,7 @@ function TransactionRow({ transaction, onDelete }: TransactionRowProps) {
         borderBottom: "1px solid #252840",
         backgroundColor: hovered ? "#1E2130" : "transparent",
         transition: "background-color 0.1s",
-        cursor: "default",
+        cursor: onEdit ? "pointer" : "default",
       }}
     >
       {/* Date */}
@@ -235,7 +238,7 @@ function TransactionRow({ transaction, onDelete }: TransactionRowProps) {
   )
 }
 
-export function TransactionTable({ transactions, loading, onDelete }: TransactionTableProps) {
+export function TransactionTable({ transactions, loading, onDelete, onEdit }: TransactionTableProps) {
   return (
     <div
       style={{
@@ -270,7 +273,7 @@ export function TransactionTable({ transactions, loading, onDelete }: Transactio
         </div>
       ) : (
         transactions.map((t) => (
-          <TransactionRow key={t.id} transaction={t} onDelete={onDelete} />
+          <TransactionRow key={t.id} transaction={t} onDelete={onDelete} onEdit={onEdit} />
         ))
       )}
 
