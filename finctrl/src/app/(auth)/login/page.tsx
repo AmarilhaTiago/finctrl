@@ -4,10 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -37,53 +33,64 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="bg-card border border-stroke rounded-lg p-8">
+      <div style={{ backgroundColor: "#1A1D27", borderColor: "#252840" }} className="border rounded-xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-text-primary">
-            <span className="text-accent">Fin</span>Ctrl
+          <h1 className="text-2xl font-semibold" style={{ color: "#F0F2FF" }}>
+            <span style={{ color: "#5B8AF5" }}>Fin</span>Ctrl
           </h1>
-          <p className="text-text-secondary text-sm mt-2">Entre na sua conta</p>
+          <p style={{ color: "#8B8FA8" }} className="text-sm mt-2">Entre na sua conta</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-text-secondary text-xs uppercase tracking-wide">Email</Label>
-            <Input
+            <label htmlFor="email" style={{ color: "#8B8FA8" }} className="text-xs uppercase tracking-wide block">Email</label>
+            <input
               id="email" type="email" placeholder="seu@email.com"
               value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="bg-base border-stroke text-text-primary placeholder:text-text-tertiary focus:border-accent"
+              style={{ backgroundColor: "#0D0F14", borderColor: "#252840", color: "#F0F2FF" }}
+              className="w-full h-10 border rounded-lg px-3 text-sm placeholder:opacity-40 focus:outline-none focus:ring-2"
+              onFocus={(e) => e.target.style.borderColor = "#5B8AF5"}
+              onBlur={(e) => e.target.style.borderColor = "#252840"}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-text-secondary text-xs uppercase tracking-wide">Senha</Label>
-            <Input
+            <label htmlFor="password" style={{ color: "#8B8FA8" }} className="text-xs uppercase tracking-wide block">Senha</label>
+            <input
               id="password" type="password" placeholder="••••••••"
               value={password} onChange={(e) => setPassword(e.target.value)} required
-              className="bg-base border-stroke text-text-primary placeholder:text-text-tertiary focus:border-accent"
+              style={{ backgroundColor: "#0D0F14", borderColor: "#252840", color: "#F0F2FF" }}
+              className="w-full h-10 border rounded-lg px-3 text-sm placeholder:opacity-40 focus:outline-none focus:ring-2"
+              onFocus={(e) => e.target.style.borderColor = "#5B8AF5"}
+              onBlur={(e) => e.target.style.borderColor = "#252840"}
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <Checkbox
-              id="remember"
+            <input
+              id="remember" type="checkbox"
               checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-              className="border-stroke data-checked:bg-accent data-checked:border-accent"
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="rounded"
+              style={{ accentColor: "#5B8AF5" }}
             />
-            <Label htmlFor="remember" className="text-text-secondary text-sm cursor-pointer">Manter conectado</Label>
+            <label htmlFor="remember" style={{ color: "#8B8FA8" }} className="text-sm cursor-pointer">Manter conectado</label>
           </div>
 
-          {error && <p className="text-negative text-sm">{error}</p>}
+          {error && <p style={{ color: "#EF5350" }} className="text-sm">{error}</p>}
 
-          <Button type="submit" disabled={loading} className="w-full bg-accent hover:bg-accent-light text-white font-medium">
+          <button
+            type="submit" disabled={loading}
+            style={{ backgroundColor: "#5B8AF5", color: "#FFFFFF" }}
+            className="w-full h-10 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
             {loading ? "Entrando..." : "Entrar"}
-          </Button>
+          </button>
         </form>
 
-        <p className="text-center text-text-tertiary text-sm mt-6">
+        <p style={{ color: "#555872" }} className="text-center text-sm mt-6">
           Não tem conta?{" "}
-          <Link href="/register" className="text-accent hover:text-accent-light">Criar conta</Link>
+          <Link href="/register" style={{ color: "#5B8AF5" }} className="hover:underline">Criar conta</Link>
         </p>
       </div>
     </div>
