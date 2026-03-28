@@ -39,7 +39,7 @@ function todayISO() {
 }
 
 export function TransactionModal() {
-  const { isTransactionModalOpen, closeTransactionModal } = useUIStore()
+  const { isTransactionModalOpen, closeTransactionModal, triggerRefetch } = useUIStore()
   const { categories } = useCategories()
   const { accounts } = useAccounts()
   const { createTransaction } = useTransactions()
@@ -100,6 +100,7 @@ export function TransactionModal() {
       })
 
       toast.success("Transação registrada com sucesso!")
+      triggerRefetch()
 
       if (keepOpen) {
         // Batch mode: keep type, category, account — reset amount, description, notes

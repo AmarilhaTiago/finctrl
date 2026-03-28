@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button"
 import type { CreditCard } from "@/lib/types/database"
 
 export default function CreditCardsPage() {
-  const { creditCards, loading, createCreditCard } = useCreditCards()
+  const { creditCards, loading, createCreditCard, refetch: refetchCreditCards } = useCreditCards()
   const [modalOpen, setModalOpen] = useState(false)
 
   function handleCreated(_card: CreditCard) {
     void _card
+    refetchCreditCards()
   }
 
   return (

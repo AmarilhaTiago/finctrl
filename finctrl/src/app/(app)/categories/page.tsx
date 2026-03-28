@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/layout/page-header"
 import { CategoryCard } from "@/components/categories/category-card"
 import { CategoryModal } from "@/components/categories/category-modal"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { useTransactions } from "@/lib/hooks/use-transactions"
+import { useUIStore } from "@/lib/stores/ui-store"
 import { calculateCategorySpending } from "@/lib/utils/calculations"
 import { Button } from "@/components/ui/button"
 import type { Category } from "@/lib/types/database"
@@ -22,10 +23,19 @@ function getCurrentMonthRange() {
 const { startDate, endDate } = getCurrentMonthRange()
 
 export default function CategoriesPage() {
-  const { categories, loading: loadingCategories } = useCategories()
-  const { transactions, loading: loadingTransactions } = useTransactions({ startDate, endDate })
+  const { categories, loading: loadingCategories, refetch: refetchCategories } = useCategories()
+  const { transactions, loading: loadingTransactions, refetch: refetchTransactions } = useTransactions({ startDate, endDate })
+  const refetchKey = useUIStore((s) => s.refetchKey)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+
+  // Refetch transactions when a transaction is created via the global modal
+  useEffect(() => {
+    if (refetchKey > 0) {
+      refetchTransactions()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refetchKey])
 
   const spendingMap = useMemo(
     () => calculateCategorySpending(transactions),
@@ -52,7 +62,7 @@ export default function CategoriesPage() {
   }
 
   function handleSaved() {
-    // Categories hook refetches on mount; page will update after dialog closes
+    refetchCategories()
   }
 
   const sectionLabelStyle: React.CSSProperties = {

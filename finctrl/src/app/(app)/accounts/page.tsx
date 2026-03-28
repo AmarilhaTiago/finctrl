@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import type { Account } from "@/lib/types/database"
 
 export default function AccountsPage() {
-  const { accounts, loading: loadingAccounts } = useAccounts()
+  const { accounts, loading: loadingAccounts, refetch: refetchAccounts } = useAccounts()
   const { transactions, loading: loadingTransactions } = useTransactions()
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -21,11 +21,9 @@ export default function AccountsPage() {
 
   const isLoading = loadingAccounts || loadingTransactions
 
-  function handleAccountCreated(account: Account) {
-    // The useAccounts hook re-fetches on mount; for immediate update we rely on the
-    // user seeing the new account after the page naturally re-renders via supabase.
-    // A full refetch could be triggered here if the hook exposed one.
-    void account
+  function handleAccountCreated(_account: Account) {
+    void _account
+    refetchAccounts()
   }
 
   return (

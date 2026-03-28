@@ -11,13 +11,14 @@ import { Button } from "@/components/ui/button"
 import type { Goal } from "@/lib/types/database"
 
 export default function GoalsPage() {
-  const { goals, loading, createGoal, addContribution } = useGoals()
+  const { goals, loading, createGoal, addContribution, refetch: refetchGoals } = useGoals()
   const { accounts } = useAccounts()
   const [goalModalOpen, setGoalModalOpen] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState<GoalWithProgress | null>(null)
 
   function handleCreated(_goal: Goal) {
     void _goal
+    refetchGoals()
   }
 
   function handleContribute(goal: GoalWithProgress) {

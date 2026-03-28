@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PageHeader } from "@/components/layout/page-header"
 import { TransactionTable } from "@/components/transactions/transaction-table"
 import { FilterBar, type FilterState } from "@/components/transactions/filter-bar"
@@ -14,6 +14,7 @@ import { getMonthRange, getCurrentMonthYear } from "@/lib/utils/date"
 export default function TransactionsPage() {
   const { month, year } = getCurrentMonthYear()
   const openTransactionModal = useUIStore((s) => s.openTransactionModal)
+  const refetchKey = useUIStore((s) => s.refetchKey)
 
   const [filters, setFilters] = useState<FilterState>({
     year,
@@ -29,7 +30,7 @@ export default function TransactionsPage() {
     [filters.year, filters.month]
   )
 
-  const { transactions, loading, deleteTransaction } = useTransactions({
+  const { transactions, loading, deleteTransaction, refetch: refetchTransactions } = useTransactions({
     startDate: start,
     endDate: end,
     type: filters.type || undefined,
@@ -39,6 +40,14 @@ export default function TransactionsPage() {
 
   const { categories } = useCategories()
   const { accounts } = useAccounts()
+
+  // Refetch when a transaction is created via the global modal
+  useEffect(() => {
+    if (refetchKey > 0) {
+      refetchTransactions()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refetchKey])
 
   // Client-side search filter on description
   const filteredTransactions = useMemo(() => {
