@@ -10,7 +10,7 @@ import { useAccounts } from "@/lib/hooks/use-accounts"
 import { Button } from "@/components/ui/button"
 
 export default function RecurringPage() {
-  const { recurring, loading, createRecurring } = useRecurring()
+  const { recurring, loading, createRecurring, refetch: refetchRecurring } = useRecurring()
   const { categories } = useCategories()
   const { accounts } = useAccounts()
   const [modalOpen, setModalOpen] = useState(false)
@@ -142,7 +142,7 @@ export default function RecurringPage() {
       <RecurringModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onCreated={() => {}}
+        onCreated={() => refetchRecurring()}
         categories={categories}
         accounts={accounts}
         onCreate={createRecurring}

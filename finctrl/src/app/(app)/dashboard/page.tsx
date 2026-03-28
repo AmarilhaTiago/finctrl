@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { SpendingPaceChart } from "@/components/dashboard/spending-pace-chart";
@@ -10,6 +10,7 @@ import { TopCategories } from "@/components/dashboard/top-categories";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { useTransactions } from "@/lib/hooks/use-transactions";
 import { useCategories } from "@/lib/hooks/use-categories";
+import { useUIStore } from "@/lib/stores/ui-store";
 import {
   calculateTotalIncome,
   calculateTotalExpenses,
@@ -27,21 +28,31 @@ function getPreviousMonthYear(month: number, year: number): { month: number; yea
 export default function DashboardPage() {
   const { month, year } = getCurrentMonthYear();
   const { month: prevMonth, year: prevYear } = getPreviousMonthYear(month, year);
+  const refetchKey = useUIStore((s) => s.refetchKey);
 
   const currentRange = getMonthRange(year, month);
   const previousRange = getMonthRange(prevYear, prevMonth);
 
-  const { transactions: currentTransactions, loading: loadingCurrent } = useTransactions({
+  const { transactions: currentTransactions, loading: loadingCurrent, refetch: refetchCurrent } = useTransactions({
     startDate: currentRange.start,
     endDate: currentRange.end,
   });
 
-  const { transactions: previousTransactions, loading: loadingPrevious } = useTransactions({
+  const { transactions: previousTransactions, loading: loadingPrevious, refetch: refetchPrevious } = useTransactions({
     startDate: previousRange.start,
     endDate: previousRange.end,
   });
 
   const { categories, loading: loadingCategories } = useCategories();
+
+  // Refetch when a transaction is created via the global modal
+  useEffect(() => {
+    if (refetchKey > 0) {
+      refetchCurrent();
+      refetchPrevious();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refetchKey]);
 
   // KPI calculations
   const currentIncome = useMemo(() => calculateTotalIncome(currentTransactions), [currentTransactions]);
