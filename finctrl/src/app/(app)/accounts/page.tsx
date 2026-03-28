@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { PageHeader } from "@/components/layout/page-header"
 import { AccountCard } from "@/components/accounts/account-card"
 import { AccountModal } from "@/components/accounts/account-modal"
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import type { Account } from "@/lib/types/database"
 
 export default function AccountsPage() {
-  const { accounts, loading: loadingAccounts, refetch: refetchAccounts } = useAccounts()
+  const { accounts, loading: loadingAccounts, refetch: refetchAccounts, deleteAccount } = useAccounts()
   const { transactions, loading: loadingTransactions } = useTransactions()
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -24,6 +25,16 @@ export default function AccountsPage() {
   function handleAccountCreated(_account: Account) {
     void _account
     refetchAccounts()
+  }
+
+  async function handleDeleteAccount(account: Account) {
+    const { error } = await deleteAccount(account.id)
+    if (error) {
+      toast.error(`Erro ao excluir a conta: ${error}`)
+    } else {
+      toast.success(`Conta "${account.name}" excluída com sucesso.`)
+      refetchAccounts()
+    }
   }
 
   return (
@@ -163,6 +174,7 @@ export default function AccountsPage() {
               key={account.id}
               account={account}
               balance={balances.get(account.id) ?? account.initial_balance}
+              onDelete={handleDeleteAccount}
             />
           ))}
         </div>

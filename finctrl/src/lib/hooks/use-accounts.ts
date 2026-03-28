@@ -23,9 +23,25 @@ export function useAccounts() {
     setLoading(false)
   }, [])
 
+  const deleteAccount = useCallback(async (id: string): Promise<{ error: string | null }> => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { error: "Usuário não autenticado" }
+    }
+    const { error } = await supabase
+      .from("accounts")
+      .delete()
+      .eq("id", id)
+    if (error) {
+      return { error: error.message }
+    }
+    return { error: null }
+  }, [])
+
   useEffect(() => {
     fetchAccounts()
   }, [fetchAccounts])
 
-  return { accounts, loading, refetch: fetchAccounts }
+  return { accounts, loading, refetch: fetchAccounts, deleteAccount }
 }
