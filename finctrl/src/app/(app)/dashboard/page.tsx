@@ -9,9 +9,8 @@ import { PartialResult } from "@/components/dashboard/partial-result";
 import { TopCategories } from "@/components/dashboard/top-categories";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { useTransactions } from "@/lib/hooks/use-transactions";
-import { useAccounts } from "@/lib/hooks/use-accounts";
 import { useCategories } from "@/lib/hooks/use-categories";
-import { useConsolidatedBalance } from "@/lib/hooks/use-account-balance";
+import { useConsolidatedBalanceDirect } from "@/lib/hooks/use-consolidated-balance";
 import { useUIStore } from "@/lib/stores/ui-store";
 import {
   calculateTotalIncome,
@@ -45,24 +44,18 @@ export default function DashboardPage() {
     endDate: previousRange.end,
   });
 
-  const { accounts, loading: loadingAccounts, refetch: refetchAccounts } = useAccounts();
   const { categories, loading: loadingCategories } = useCategories();
+  const { balance: consolidatedBalance, loading: loadingBalance, refetch: refetchBalance } = useConsolidatedBalanceDirect();
 
   // Refetch when a transaction is created via the global modal
   useEffect(() => {
     if (refetchKey > 0) {
       refetchCurrent();
       refetchPrevious();
-      refetchAccounts();
+      refetchBalance();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refetchKey]);
-
-  // All transactions (no date filter) for consolidated balance calculation
-  const { transactions: allTransactions } = useTransactions({});
-
-  // Consolidated balance = sum of all account balances (initial_balance + transactions)
-  const consolidatedBalance = useConsolidatedBalance(accounts, allTransactions);
 
   // KPI calculations
   const currentIncome = useMemo(() => calculateTotalIncome(currentTransactions), [currentTransactions]);
@@ -102,7 +95,7 @@ export default function DashboardPage() {
     [previousTransactions]
   );
 
-  const isLoading = loadingCurrent || loadingPrevious || loadingCategories || loadingAccounts;
+  const isLoading = loadingCurrent || loadingPrevious || loadingCategories || loadingBalance;
 
   return (
     <div>
