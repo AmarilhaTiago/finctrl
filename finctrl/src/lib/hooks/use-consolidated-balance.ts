@@ -6,50 +6,66 @@ import { createClient } from "@/lib/supabase/client"
 /**
  * Fetches the consolidated balance directly from Supabase.
  * Balance = sum(initial_balance of all accounts) + sum(income transactions) - sum(expense transactions)
- * This avoids needing to load ALL transactions into memory.
  */
 export function useConsolidatedBalanceDirect() {
-  const [balance, setBalance] = useState(0)
+  const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
 
   const fetchBalance = useCallback(async () => {
-    const supabase = createClient()
+    try {
+      const supabase = createClient()
 
-    // Get sum of initial balances
-    const { data: accounts } = await supabase
-      .from("accounts")
-      .select("initial_balance")
-      .eq("is_active", true)
+      // Get all active accounts with their initial balances
+      const { data: accounts, error: accError } = await supabase
+        .from("accounts")
+        .select("initial_balance")
+        .eq("is_active", true)
 
-    const initialTotal = (accounts ?? []).reduce(
-      (sum, acc) => sum + Number(acc.initial_balance),
-      0
-    )
+      if (accError) {
+        console.error("Error fetching accounts for balance:", accError)
+        setLoading(false)
+        return
+      }
 
-    // Get sum of all income
-    const { data: incomeData } = await supabase
-      .from("transactions")
-      .select("amount")
-      .eq("type", "income")
+      let initialTotal = 0
+      if (accounts && accounts.length > 0) {
+        for (const acc of accounts) {
+          const val = parseFloat(String(acc.initial_balance ?? 0))
+          if (!isNaN(val)) initialTotal += val
+        }
+      }
 
-    const totalIncome = (incomeData ?? []).reduce(
-      (sum, t) => sum + Number(t.amount),
-      0
-    )
+      // Get all transactions to calculate net flow
+      const { data: transactions, error: txError } = await supabase
+        .from("transactions")
+        .select("type, amount")
 
-    // Get sum of all expenses
-    const { data: expenseData } = await supabase
-      .from("transactions")
-      .select("amount")
-      .eq("type", "expense")
+      if (txError) {
+        console.error("Error fetching transactions for balance:", txError)
+        // Still show initial balance even if transactions fail
+        setBalance(initialTotal)
+        setLoading(false)
+        return
+      }
 
-    const totalExpenses = (expenseData ?? []).reduce(
-      (sum, t) => sum + Number(t.amount),
-      0
-    )
+      let totalIncome = 0
+      let totalExpenses = 0
+      if (transactions && transactions.length > 0) {
+        for (const t of transactions) {
+          const amount = parseFloat(String(t.amount ?? 0))
+          if (isNaN(amount)) continue
+          if (t.type === "income") totalIncome += amount
+          else if (t.type === "expense") totalExpenses += amount
+        }
+      }
 
-    setBalance(initialTotal + totalIncome - totalExpenses)
-    setLoading(false)
+      const total = initialTotal + totalIncome - totalExpenses
+      setBalance(total)
+    } catch (err) {
+      console.error("Error calculating consolidated balance:", err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
