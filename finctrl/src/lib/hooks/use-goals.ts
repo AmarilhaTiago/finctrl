@@ -50,9 +50,12 @@ export function useGoals() {
     color?: string | null
   }): Promise<Goal | null> {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Usuário não autenticado")
+
     const { data, error } = await supabase
       .from("goals")
-      .insert([{ ...input, current_amount: 0, is_completed: false }])
+      .insert([{ ...input, current_amount: 0, is_completed: false, user_id: user.id }])
       .select()
       .single()
 
@@ -67,11 +70,13 @@ export function useGoals() {
     date: string
   ): Promise<void> {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Usuário não autenticado")
 
     // Insert contribution
     const { error: contribError } = await supabase
       .from("goal_contributions")
-      .insert([{ goal_id: goalId, amount, date }])
+      .insert([{ goal_id: goalId, amount, date, user_id: user.id }])
 
     if (contribError) throw contribError
 

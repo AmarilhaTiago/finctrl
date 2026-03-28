@@ -83,9 +83,12 @@ export function useTransactions(filters: TransactionFilters = {}) {
 
   async function createTransaction(input: CreateTransactionInput): Promise<Transaction | null> {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Usuário não autenticado")
+
     const { data, error } = await supabase
       .from("transactions")
-      .insert([input])
+      .insert([{ ...input, user_id: user.id }])
       .select()
       .single()
 

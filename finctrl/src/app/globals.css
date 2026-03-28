@@ -118,3 +118,21 @@
     border-color: #252840;
   }
 }
+
+/* Force dark mode on all form elements inside dialogs */
+[data-slot="dialog-content"] select,
+[data-slot="dialog-content"] input,
+[data-slot="dialog-content"] textarea {
+  background-color: #0D0F14 !important;
+  color: #F0F2FF !important;
+  border-color: #252840 !important;
+}
+
+[data-slot="dialog-content"] select option {
+  background-color: #1A1D27;
+  color: #F0F2FF;
+}
+
+[data-slot="dialog-content"] label {
+  color: #8B8FA8 !important;
+}

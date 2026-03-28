@@ -108,6 +108,8 @@ export function CategoryModal({ open, onClose, onSaved, category }: CategoryModa
   async function onSubmit(values: CategoryFormValues) {
     try {
       const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { toast.error("Usuário não autenticado"); return }
 
       const payload = {
         name: values.name,
@@ -128,7 +130,7 @@ export function CategoryModal({ open, onClose, onSaved, category }: CategoryModa
       } else {
         const { error } = await supabase
           .from("categories")
-          .insert([{ ...payload, is_active: true }])
+          .insert([{ ...payload, is_active: true, user_id: user.id }])
 
         if (error) throw error
         toast.success("Categoria criada com sucesso!")

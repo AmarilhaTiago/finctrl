@@ -83,6 +83,9 @@ export function AccountModal({ open, onClose, onCreated }: AccountModalProps) {
   async function onSubmit(values: AccountFormValues) {
     try {
       const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { toast.error("Usuário não autenticado"); return }
+
       const { data, error } = await supabase
         .from("accounts")
         .insert([
@@ -92,6 +95,7 @@ export function AccountModal({ open, onClose, onCreated }: AccountModalProps) {
             initial_balance: values.initial_balance,
             color: values.color || null,
             is_active: true,
+            user_id: user.id,
           },
         ])
         .select()

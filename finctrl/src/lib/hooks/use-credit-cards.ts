@@ -91,9 +91,12 @@ export function useCreditCards() {
     color: string | null
   }): Promise<CreditCard | null> {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Usuário não autenticado")
+
     const { data, error } = await supabase
       .from("credit_cards")
-      .insert([{ ...input, is_active: true }])
+      .insert([{ ...input, is_active: true, user_id: user.id }])
       .select()
       .single()
 

@@ -80,9 +80,12 @@ export function useRecurring() {
     current_installment?: number | null
   }): Promise<void> {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Usuário não autenticado")
+
     const { error } = await supabase
       .from("recurring")
-      .insert([{ ...input, is_active: true }])
+      .insert([{ ...input, is_active: true, user_id: user.id }])
 
     if (error) throw error
     await fetchRecurring()
